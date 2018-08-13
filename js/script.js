@@ -3,17 +3,24 @@
   var scene, fieldOfView, aspectRatio, nearPlane, farPlane, HEIGHT, WIDTH, renderer, container;
   var hemisphereLight, shadowLight;
   var asteroidBelt;
+  var rocks;
 
   class AsteroidBelt {
 		constructor(options) {
 			this.mesh = new THREE.Object3D();
-			this.nAsteroids = 10;
+			this.nAsteroids = 20;
 
 			for(let i=0; i<this.nAsteroids; i++) {
 				createNewAsteroid(this);
 			}
 		}
 	}
+
+  class Rocks {
+    constructor(options) {
+      this.mesh = new THREE.Object3D();
+    }
+  }
 
   class Asteroid {
 		constructor(options) {
@@ -65,17 +72,41 @@
 		}
 	}
 
+  class Rock {
+    constructor(options) {
+      this.mesh = options;
+
+      this.rotationValue = (Math.random() * .03);
+      this.rotationValue *= Math.floor(Math.random() * 2) == 1 ? 1 : -1;
+      this.moveXValue = (Math.random() * 1);
+      this.moveXValue *= Math.floor(Math.random() * 2) == 1 ? 1 : -1;
+      this.moveYValue = (Math.random() * 1);
+      this.moveYValue *= Math.floor(Math.random() * 2) == 1 ? 1 : -1;
+
+      const rotateRock = () => {
+        this.mesh.rotation.z += this.rotationValue;
+        requestAnimationFrame(rotateRock);
+      }
+
+      const moveRock = () => {
+        this.mesh.position.x += this.moveXValue;
+        this.mesh.position.y += this.moveYValue;
+        requestAnimationFrame(moveRock);
+      }
+
+      rotateRock();
+      moveRock();
+    }
+  }
+
   const createNewAsteroid = parent => {
     const c = new Asteroid();
 
+    c.mesh.position.z = -400;
     c.mesh.position.x = Math.random() * 1000;
     c.mesh.position.x *= Math.floor(Math.random() *2) == 1 ? 1 : -1;
     c.mesh.position.y = Math.random() * 1000;
     c.mesh.position.y *= Math.floor(Math.random() *2) == 1 ? 1 : -1;
-    c.mesh.position.z = -400;
-
-    const s = 1+Math.random()*2;
-    c.mesh.scale.set(s, s, s);
 
     while(!isOffScreen(c.mesh)) {
       c.mesh.position.x = Math.random() * 1000;
@@ -83,6 +114,9 @@
       c.mesh.position.y = Math.random() * 1000;
       c.mesh.position.y *= Math.floor(Math.random() *2) == 1 ? 1 : -1;
     }
+
+    const s = 1+Math.random()*2;
+    c.mesh.scale.set(s, s, s);
 
     parent.mesh.add(c.mesh);
   }
@@ -213,10 +247,32 @@
     return object1Box.intersectsBox(object2Box);
   }
 
+  const explode = object => {
+    for(let i = 0; i < object.children.length; i++) {
+      const rock = new Rock(object.children[i]);
+      rock.mesh.position.x = object.position.x;
+      rock.mesh.position.y = object.position.y;
+      rock.mesh.position.z = object.position.z;
+      rock.mesh.scale.set(
+        object.children[i].scale.x * object.scale.x,
+        object.children[i].scale.y * object.scale.y,
+        object.children[i].scale.z * object.scale.z
+      );
+      rocks.mesh.add(rock.mesh);
+    }
+    asteroidBelt.mesh.remove(object);
+  }
+
   const loop = () => {
     for(let i = 0; i < asteroidBelt.mesh.children.length; i++) {
       if(isOffImaginaryScreen(asteroidBelt.mesh.children[i])) {
         asteroidBelt.mesh.remove(asteroidBelt.mesh.children[i]);
+      }
+    }
+
+    for(let i = 0; i < rocks.mesh.children.length; i++) {
+      if(isOffImaginaryScreen(rocks.mesh.children[i])) {
+        rocks.mesh.remove(rocks.mesh.children[i]);
       }
     }
 
@@ -228,23 +284,27 @@
       for(let s = 0; s < asteroidBelt.mesh.children.length; s++) {
         if(i !== s) {
           if(detectCollision(asteroidBelt.mesh.children[i], asteroidBelt.mesh.children[s])) {
-            asteroidBelt.mesh.remove(asteroidBelt.mesh.children[i]);
-            asteroidBelt.mesh.remove(asteroidBelt.mesh.children[s]);
+            explode(asteroidBelt.mesh.children[i]);
           };
         }
       }
     }
 
-    console.log(asteroidBelt.mesh.children.length);
-
     renderer.render(scene, camera);
     requestAnimationFrame(loop);
+  }
+
+  const createRocks = () => {
+    rocks = new Rocks();
+    scene.add(rocks.mesh);
   }
 
   const init = () => {
     createScene();
     createLights();
     createAsteroidBelt();
+    createRocks();
+
 
     loop();
   }
