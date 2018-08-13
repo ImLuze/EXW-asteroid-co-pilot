@@ -8,7 +8,7 @@
   class AsteroidBelt {
 		constructor(options) {
 			this.mesh = new THREE.Object3D();
-			this.nAsteroids = 20;
+			this.nAsteroids = 50;
 
 			for(let i=0; i<this.nAsteroids; i++) {
 				createNewAsteroid(this);
@@ -32,7 +32,7 @@
       this.moveYValue = (Math.random() * 1);
       this.moveYValue *= Math.floor(Math.random() * 2) == 1 ? 1 : -1;
 
-			const geom = new THREE.BoxGeometry(20, 20, 20);
+			const geom = new THREE.IcosahedronGeometry(20);
 
 			var mat = new THREE.MeshPhongMaterial({
 				color:0x322C23
@@ -72,30 +72,64 @@
 		}
 	}
 
+  // class Rock {
+  //   constructor(options) {
+  //     this.mesh = options;
+  //
+  //     this.rotationValue = (Math.random() * .03);
+  //     this.rotationValue *= Math.floor(Math.random() * 2) == 1 ? 1 : -1;
+  //     this.moveXValue = (Math.random() * 1);
+  //     this.moveXValue *= Math.floor(Math.random() * 2) == 1 ? 1 : -1;
+  //     this.moveYValue = (Math.random() * 1);
+  //     this.moveYValue *= Math.floor(Math.random() * 2) == 1 ? 1 : -1;
+  //
+  //     const rotateRock = () => {
+  //       this.mesh.rotation.z += this.rotationValue;
+  //       requestAnimationFrame(rotateRock);
+  //     }
+  //
+  //     const moveRock = () => {
+  //       this.mesh.position.x += this.moveXValue;
+  //       this.mesh.position.y += this.moveYValue;
+  //       requestAnimationFrame(moveRock);
+  //     }
+  //
+  //     rotateRock();
+  //     moveRock();
+  //   }
+  // }
+
   class Rock {
     constructor(options) {
-      this.mesh = options;
 
-      this.rotationValue = (Math.random() * .03);
-      this.rotationValue *= Math.floor(Math.random() * 2) == 1 ? 1 : -1;
-      this.moveXValue = (Math.random() * 1);
-      this.moveXValue *= Math.floor(Math.random() * 2) == 1 ? 1 : -1;
-      this.moveYValue = (Math.random() * 1);
-      this.moveYValue *= Math.floor(Math.random() * 2) == 1 ? 1 : -1;
+			const geom = new THREE.IcosahedronGeometry(10);
 
-      const rotateRock = () => {
-        this.mesh.rotation.z += this.rotationValue;
-        requestAnimationFrame(rotateRock);
-      }
+			var mat = new THREE.MeshPhongMaterial({
+				color:0x322C23
+			});
 
-      const moveRock = () => {
-        this.mesh.position.x += this.moveXValue;
-        this.mesh.position.y += this.moveYValue;
-        requestAnimationFrame(moveRock);
-      }
+			this.mesh = new THREE.Mesh(geom, mat);
 
-      rotateRock();
-      moveRock();
+			this.rotationValue = (Math.random() * .03);
+		  this.rotationValue *= Math.floor(Math.random() * 2) == 1 ? 1 : -1;
+		  this.moveXValue = (Math.random() * 1);
+		  this.moveXValue *= Math.floor(Math.random() * 2) == 1 ? 1 : -1;
+		  this.moveYValue = (Math.random() * 1);
+		  this.moveYValue *= Math.floor(Math.random() * 2) == 1 ? 1 : -1;
+
+			const rotateRock = () => {
+		    this.mesh.rotation.z += this.rotationValue;
+		    requestAnimationFrame(rotateRock);
+		  }
+
+		  const moveRock = () => {
+		    this.mesh.position.x += this.moveXValue;
+		    this.mesh.position.y += this.moveYValue;
+		    requestAnimationFrame(moveRock);
+		  }
+
+		  rotateRock();
+		  moveRock();
     }
   }
 
@@ -286,6 +320,14 @@
           if(detectCollision(asteroidBelt.mesh.children[i], asteroidBelt.mesh.children[s])) {
             explode(asteroidBelt.mesh.children[i]);
           };
+        }
+      }
+    }
+
+    for(let i = 0; i < asteroidBelt.mesh.children.length; i++) {
+      for(let r = 0; r < rocks.mesh.children.length; r++) {
+        if(detectCollision(asteroidBelt.mesh.children[i], rocks.mesh.children[r])) {
+          rocks.mesh.remove(rocks.mesh.children[r]);
         }
       }
     }
