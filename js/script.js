@@ -12,8 +12,10 @@
 			for(let i=0; i<this.nAsteroids; i++) {
 				const c = new Asteroid();
 
-				c.mesh.position.x = Math.random() * 300;
-				c.mesh.position.y = Math.random() * 300;
+				c.mesh.position.x = Math.random() * 1000;
+        c.mesh.position.x *= Math.floor(Math.random() *2) == 1 ? 1 : -1;
+				c.mesh.position.y = Math.random() * 1000;
+        c.mesh.position.y *= Math.floor(Math.random() *2) == 1 ? 1 : -1;
 				c.mesh.position.z = -400;
 
 				const s = 1+Math.random()*2;
@@ -139,7 +141,16 @@
   }
 
   const isOffScreen = object => {
-    console.log(object);
+    camera.updateMatrix();
+    camera.updateMatrixWorld();
+    var frustum = new THREE.Frustum();
+    frustum.setFromMatrix(new THREE.Matrix4().multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse));
+
+    if(frustum.containsPoint(object.position)) {
+    } else {
+      asteroidBelt.mesh.remove(object)
+      console.log(asteroidBelt.mesh.children);
+    }
 
   }
 
