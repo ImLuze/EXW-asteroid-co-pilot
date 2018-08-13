@@ -7,7 +7,7 @@
   class AsteroidBelt {
 		constructor(options) {
 			this.mesh = new THREE.Object3D();
-			this.nAsteroids = 50;
+			this.nAsteroids = 10;
 
 			for(let i=0; i<this.nAsteroids; i++) {
 				createNewAsteroid(this);
@@ -85,7 +85,6 @@
     }
 
     parent.mesh.add(c.mesh);
-    console.log('new asteroid');
   }
 
   const createScene = () => {
@@ -207,25 +206,12 @@
     }
   }
 
-  const toScreenPosition = obj => {
-    var vector = new THREE.Vector3();
+  const detectCollision = (object1, object2) => {
+    object1Box = new THREE.Box3().setFromObject(object1);
+    object2Box = new THREE.Box3().setFromObject(object2);
 
-    var widthHalf = 0.5*renderer.context.canvas.width;
-    var heightHalf = 0.5*renderer.context.canvas.height;
-
-    obj.updateMatrixWorld();
-    vector.setFromMatrixPosition(obj.matrixWorld);
-    vector.project(camera);
-
-    vector.x = ( vector.x * widthHalf ) + widthHalf;
-    vector.y = - ( vector.y * heightHalf ) + heightHalf;
-
-    return {
-        x: vector.x,
-        y: vector.y
-    };
-
-};
+    return object1Box.intersectsBox(object2Box);
+  }
 
   const loop = () => {
     for(let i = 0; i < asteroidBelt.mesh.children.length; i++) {
@@ -237,6 +223,19 @@
     if(asteroidBelt.mesh.children.length < asteroidBelt.nAsteroids) {
       createNewAsteroid(asteroidBelt);
     }
+
+    for(let i = 0; i < asteroidBelt.mesh.children.length; i++) {
+      for(let s = 0; s < asteroidBelt.mesh.children.length; s++) {
+        if(i !== s) {
+          if(detectCollision(asteroidBelt.mesh.children[i], asteroidBelt.mesh.children[s])) {
+            asteroidBelt.mesh.remove(asteroidBelt.mesh.children[i]);
+            asteroidBelt.mesh.remove(asteroidBelt.mesh.children[s]);
+          };
+        }
+      }
+    }
+
+    console.log(asteroidBelt.mesh.children.length);
 
     renderer.render(scene, camera);
     requestAnimationFrame(loop);
