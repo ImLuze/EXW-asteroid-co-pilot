@@ -14,7 +14,7 @@
 
 				c.mesh.position.x = 0;
 				c.mesh.position.y = 0;
-				c.mesh.position.z = -600;
+				c.mesh.position.z = -400;
 
 				const s = 1+Math.random()*2;
 				c.mesh.scale.set(s, s, s);
@@ -132,9 +132,15 @@
 
   const createAsteroidBelt = () => {
     asteroidBelt = new AsteroidBelt();
-    // asteroidBelt.mesh.position.y = -600;
     scene.add(asteroidBelt.mesh);
     console.log(scene);
+  }
+
+  const loop = () => {
+    asteroidBelt.mesh.rotation.z += .01;
+
+    renderer.render(scene, camera);
+    requestAnimationFrame(loop);
   }
 
   const init = () => {
@@ -142,7 +148,7 @@
     createLights();
     createAsteroidBelt();
 
-    renderer.render(scene, camera);
+    loop();
   }
 
   init();
