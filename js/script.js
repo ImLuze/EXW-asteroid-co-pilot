@@ -7,22 +7,10 @@
   class AsteroidBelt {
 		constructor(options) {
 			this.mesh = new THREE.Object3D();
-			this.nAsteroids = 5;
+			this.nAsteroids = 50;
 
 			for(let i=0; i<this.nAsteroids; i++) {
-				const c = new Asteroid();
-
-				c.mesh.position.x = Math.random() * 1000;
-        c.mesh.position.x *= Math.floor(Math.random() *2) == 1 ? 1 : -1;
-				c.mesh.position.y = Math.random() * 1000;
-        c.mesh.position.y *= Math.floor(Math.random() *2) == 1 ? 1 : -1;
-				c.mesh.position.z = -400;
-
-				const s = 1+Math.random()*2;
-				c.mesh.scale.set(s, s, s);
-
-				this.mesh.add(c.mesh);
-        this[i] = c.rotationValue;
+				createNewAsteroid(this);
 			}
 		}
 	}
@@ -32,6 +20,10 @@
 			this.mesh = new THREE.Object3D();
       this.rotationValue = (Math.random() * .03);
       this.rotationValue *= Math.floor(Math.random() * 2) == 1 ? 1 : -1;
+      this.moveXValue = (Math.random() * 1);
+      this.moveXValue *= Math.floor(Math.random() * 2) == 1 ? 1 : -1;
+      this.moveYValue = (Math.random() * 1);
+      this.moveYValue *= Math.floor(Math.random() * 2) == 1 ? 1 : -1;
 
 			const geom = new THREE.BoxGeometry(20, 20, 20);
 
@@ -56,8 +48,45 @@
 
 				this.mesh.add(m);
 			}
+
+      const rotateAsteroid = () => {
+        this.mesh.rotation.z += this.rotationValue;
+        requestAnimationFrame(rotateAsteroid);
+      }
+
+      const moveAsteroid = () => {
+        this.mesh.position.x += this.moveXValue;
+        this.mesh.position.y += this.moveYValue;
+        requestAnimationFrame(moveAsteroid);
+      }
+
+      rotateAsteroid();
+      moveAsteroid();
 		}
 	}
+
+  const createNewAsteroid = parent => {
+    const c = new Asteroid();
+
+    c.mesh.position.x = Math.random() * 1000;
+    c.mesh.position.x *= Math.floor(Math.random() *2) == 1 ? 1 : -1;
+    c.mesh.position.y = Math.random() * 1000;
+    c.mesh.position.y *= Math.floor(Math.random() *2) == 1 ? 1 : -1;
+    c.mesh.position.z = -400;
+
+    const s = 1+Math.random()*2;
+    c.mesh.scale.set(s, s, s);
+
+    while(!isOffScreen(c.mesh)) {
+      c.mesh.position.x = Math.random() * 1000;
+      c.mesh.position.x *= Math.floor(Math.random() *2) == 1 ? 1 : -1;
+      c.mesh.position.y = Math.random() * 1000;
+      c.mesh.position.y *= Math.floor(Math.random() *2) == 1 ? 1 : -1;
+    }
+
+    parent.mesh.add(c.mesh);
+    console.log('new asteroid');
+  }
 
   const createScene = () => {
 
@@ -147,17 +176,66 @@
     frustum.setFromMatrix(new THREE.Matrix4().multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse));
 
     if(frustum.containsPoint(object.position)) {
+      return false
     } else {
-      asteroidBelt.mesh.remove(object)
-      console.log(asteroidBelt.mesh.children);
+      return true
     }
 
   }
 
+  const isOffImaginaryScreen = object => {
+    imaginaryCamera = new THREE.PerspectiveCamera(
+      fieldOfView,
+      aspectRatio,
+      nearPlane,
+      farPlane
+    );
+
+    imaginaryCamera.position.x = 0;
+    imaginaryCamera.position.z = 600;
+    imaginaryCamera.position.y = 0;
+
+    imaginaryCamera.updateMatrix();
+    imaginaryCamera.updateMatrixWorld();
+    var frustum = new THREE.Frustum();
+    frustum.setFromMatrix(new THREE.Matrix4().multiplyMatrices(imaginaryCamera.projectionMatrix, imaginaryCamera.matrixWorldInverse));
+
+    if(frustum.containsPoint(object.position)) {
+      return false
+    } else {
+      return true
+    }
+  }
+
+  const toScreenPosition = obj => {
+    var vector = new THREE.Vector3();
+
+    var widthHalf = 0.5*renderer.context.canvas.width;
+    var heightHalf = 0.5*renderer.context.canvas.height;
+
+    obj.updateMatrixWorld();
+    vector.setFromMatrixPosition(obj.matrixWorld);
+    vector.project(camera);
+
+    vector.x = ( vector.x * widthHalf ) + widthHalf;
+    vector.y = - ( vector.y * heightHalf ) + heightHalf;
+
+    return {
+        x: vector.x,
+        y: vector.y
+    };
+
+};
+
   const loop = () => {
     for(let i = 0; i < asteroidBelt.mesh.children.length; i++) {
-      asteroidBelt.mesh.children[i].rotation.z += asteroidBelt[i];
-      isOffScreen(asteroidBelt.mesh.children[i]);
+      if(isOffImaginaryScreen(asteroidBelt.mesh.children[i])) {
+        asteroidBelt.mesh.remove(asteroidBelt.mesh.children[i]);
+      }
+    }
+
+    if(asteroidBelt.mesh.children.length < asteroidBelt.nAsteroids) {
+      createNewAsteroid(asteroidBelt);
     }
 
     renderer.render(scene, camera);
