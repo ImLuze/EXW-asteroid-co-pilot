@@ -213,7 +213,8 @@
 		  const moveRock = () => {
 		    this.mesh.position.x += this.moveXValue;
 		    this.mesh.position.y += this.moveYValue;
-		    requestAnimationFrame(moveRock);
+
+				requestAnimationFrame(moveRock);
 		  }
 
 		  rotateRock();
@@ -362,7 +363,7 @@
     }
   }
 
-  const detectCollision = (object1, object2) => {
+  const detectCollisionBetweenObjects = (object1, object2) => {
 		if(object1 && object2) {
 			object1Box = new THREE.Box3().setFromObject(object1);
 	    object2Box = new THREE.Box3().setFromObject(object2);
@@ -389,6 +390,44 @@
 		}
   }
 
+	const detectCollisionBetweenGroups = (group1, group2, doExplode) => {
+		for(let i = 0; i < group1.mesh.children.length; i++) {
+			for(let a = 0; a < group2.mesh.children.length; a++) {
+				if(group1.mesh.uuid === group2.mesh.uuid) {
+					if(i !== a) {
+						if(detectCollisionBetweenObjects(group1.mesh.children[i], group2.mesh.children[a])) {
+
+							if(doExplode) {
+								if(rocks.mesh.children.length > 50) {
+									group2.mesh.remove(group2.mesh.children[a]);
+								} else {
+									explode(group2.mesh.children[a]);
+								}
+							} else {
+								group2.mesh.remove(group2.mesh.children[a]);
+							}
+
+						}
+					}
+				} else {
+					if(detectCollisionBetweenObjects(group1.mesh.children[i], group2.mesh.children[a])) {
+
+						if(doExplode) {
+							if(rocks.mesh.children.length > 50) {
+								group2.mesh.remove(group2.mesh.children[a]);
+							} else {
+								explode(group2.mesh.children[a]);
+							}
+						} else {
+							group2.mesh.remove(group2.mesh.children[a]);
+						}
+
+					}
+				}
+			}
+		}
+	}
+
   const loop = () => {
     for(let i = 0; i < asteroidBelt.mesh.children.length; i++) {
       if(isOffImaginaryScreen(asteroidBelt.mesh.children[i])) {
@@ -397,7 +436,7 @@
     }
 
     for(let i = 0; i < rocks.mesh.children.length; i++) {
-      if(isOffImaginaryScreen(rocks.mesh.children[i])) {
+      if(isOffScreen(rocks.mesh.children[i])) {
         rocks.mesh.remove(rocks.mesh.children[i]);
       }
     }
@@ -406,23 +445,11 @@
       createNewAsteroid(asteroidBelt);
     }
 
-    for(let i = 0; i < asteroidBelt.mesh.children.length; i++) {
-      for(let s = 0; s < asteroidBelt.mesh.children.length; s++) {
-        if(i !== s) {
-          if(detectCollision(asteroidBelt.mesh.children[i], asteroidBelt.mesh.children[s])) {
-            explode(asteroidBelt.mesh.children[i]);
-          };
-        }
-      }
-    }
+		detectCollisionBetweenGroups(asteroidBelt, asteroidBelt, true);
+		detectCollisionBetweenGroups(asteroidBelt, rocks, false);
+		detectCollisionBetweenGroups(bullets, asteroidBelt, true);
 
-    for(let i = 0; i < asteroidBelt.mesh.children.length; i++) {
-      for(let r = 0; r < rocks.mesh.children.length; r++) {
-        if(detectCollision(asteroidBelt.mesh.children[i], rocks.mesh.children[r])) {
-          rocks.mesh.remove(rocks.mesh.children[r]);
-        }
-      }
-    }
+		console.log(rocks.mesh.children.length);
 
     renderer.render(scene, camera);
     requestAnimationFrame(loop);
@@ -443,7 +470,6 @@
 	const fire = () => {
 		bullet = new Bullet();
 		bullets.mesh.add(bullet.mesh);
-		console.log(bullets.mesh.children.length);
 	}
 
 	const createBullet = () => {
