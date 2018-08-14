@@ -4,6 +4,89 @@
   var hemisphereLight, shadowLight;
   var asteroidBelt;
   var rocks;
+	var spaceship;
+
+	class Spaceship {
+		constructor(options) {
+			this.mesh = new THREE.Object3D();
+			const geomBody = new THREE.BoxGeometry(20, 120, 20, 1, 3, 1);
+
+			geomBody.vertices[0].x += -7;
+			geomBody.vertices[0].z += -7;
+			geomBody.vertices[1].x += -7;
+			geomBody.vertices[1].z += 7;
+			geomBody.vertices[8].x += 7;
+			geomBody.vertices[8].z += 7;
+			geomBody.vertices[9].x += 7;
+			geomBody.vertices[9].z += -7;
+
+			geomBody.vertices[6].y += 30;
+			geomBody.vertices[6].x += -3;
+			geomBody.vertices[6].z += -3;
+			geomBody.vertices[7].y += 30;
+			geomBody.vertices[7].x += -3;
+			geomBody.vertices[7].z += 3;
+			geomBody.vertices[14].y += 30;
+			geomBody.vertices[14].x += 3;
+			geomBody.vertices[14].z += 3;
+			geomBody.vertices[15].y += 30;
+			geomBody.vertices[15].x += 3;
+			geomBody.vertices[15].z += -3;
+
+			var material = new THREE.MeshPhongMaterial({
+				color:0xd52626
+			});
+
+			var body = new THREE.Mesh(geomBody, material);
+
+			body.castShadow = true;
+			body.receiveShadow = true;
+			this.mesh.add(body);
+
+			const geomWing = new THREE.BoxGeometry(20, 40, 10, 2, 1, 1);
+
+			geomWing.vertices[4].y += 20;
+			geomWing.vertices[4].x += -4;
+			geomWing.vertices[5].y += 20;
+			geomWing.vertices[5].x += -4;
+
+			geomWing.vertices[8].z += 2;
+			geomWing.vertices[9].z += -2;
+
+			geomWing.vertices[0].y += -30;
+			geomWing.vertices[0].z += -4;
+			geomWing.vertices[1].y += -30;
+			geomWing.vertices[1].z += 4;
+
+			geomWing.vertices[2].y += -10;
+			geomWing.vertices[2].z += -5;
+			geomWing.vertices[3].y += -10;
+			geomWing.vertices[3].z += 5;
+
+			geomWing.vertices[6].y += 5;
+			geomWing.vertices[6].x += -3;
+			geomWing.vertices[7].y += 5;
+			geomWing.vertices[7].x += -3;
+
+			var leftWing = new THREE.Mesh(geomWing, material);
+			leftWing.position.x += 20;
+			leftWing.position.y += -10;
+
+			leftWing.castShadow = true;
+			leftWing.receiveShadow = true;
+			this.mesh.add(leftWing);
+
+			var rightWing = new THREE.Mesh(geomWing, material);
+			rightWing.rotation.y += 3.2;
+			rightWing.position.x += -20;
+			rightWing.position.y += -10;
+
+			rightWing.castShadow = true;
+			rightWing.receiveShadow = true;
+			this.mesh.add(rightWing);
+
+		}
+	}
 
   class AsteroidBelt {
 		constructor(options) {
@@ -72,33 +155,6 @@
 		}
 	}
 
-  // class Rock {
-  //   constructor(options) {
-  //     this.mesh = options;
-  //
-  //     this.rotationValue = (Math.random() * .03);
-  //     this.rotationValue *= Math.floor(Math.random() * 2) == 1 ? 1 : -1;
-  //     this.moveXValue = (Math.random() * 1);
-  //     this.moveXValue *= Math.floor(Math.random() * 2) == 1 ? 1 : -1;
-  //     this.moveYValue = (Math.random() * 1);
-  //     this.moveYValue *= Math.floor(Math.random() * 2) == 1 ? 1 : -1;
-  //
-  //     const rotateRock = () => {
-  //       this.mesh.rotation.z += this.rotationValue;
-  //       requestAnimationFrame(rotateRock);
-  //     }
-  //
-  //     const moveRock = () => {
-  //       this.mesh.position.x += this.moveXValue;
-  //       this.mesh.position.y += this.moveYValue;
-  //       requestAnimationFrame(moveRock);
-  //     }
-  //
-  //     rotateRock();
-  //     moveRock();
-  //   }
-  // }
-
   class Rock {
     constructor(options) {
 
@@ -159,7 +215,7 @@
 
     scene = new THREE.Scene();
 
-    scene.fog = new THREE.Fog(0x100e1c, 100, 950);
+    scene.fog = new THREE.Fog(0x100e1c, 100, 1300);
 
     _createCamera();
     _createRenderer();
@@ -275,26 +331,30 @@
   }
 
   const detectCollision = (object1, object2) => {
-    object1Box = new THREE.Box3().setFromObject(object1);
-    object2Box = new THREE.Box3().setFromObject(object2);
+		if(object1 && object2) {
+			object1Box = new THREE.Box3().setFromObject(object1);
+	    object2Box = new THREE.Box3().setFromObject(object2);
+		}
 
     return object1Box.intersectsBox(object2Box);
   }
 
   const explode = object => {
-    for(let i = 0; i < object.children.length; i++) {
-      const rock = new Rock(object.children[i]);
-      rock.mesh.position.x = object.position.x;
-      rock.mesh.position.y = object.position.y;
-      rock.mesh.position.z = object.position.z;
-      rock.mesh.scale.set(
-        object.children[i].scale.x * object.scale.x,
-        object.children[i].scale.y * object.scale.y,
-        object.children[i].scale.z * object.scale.z
-      );
-      rocks.mesh.add(rock.mesh);
-    }
-    asteroidBelt.mesh.remove(object);
+		if(object) {
+			for(let i = 0; i < object.children.length; i++) {
+	      const rock = new Rock(object.children[i]);
+	      rock.mesh.position.x = object.position.x;
+	      rock.mesh.position.y = object.position.y;
+	      rock.mesh.position.z = object.position.z;
+	      rock.mesh.scale.set(
+	        object.children[i].scale.x * object.scale.x,
+	        object.children[i].scale.y * object.scale.y,
+	        object.children[i].scale.z * object.scale.z
+	      );
+	      rocks.mesh.add(rock.mesh);
+	    }
+	    asteroidBelt.mesh.remove(object);
+		}
   }
 
   const loop = () => {
@@ -332,6 +392,9 @@
       }
     }
 
+		// spaceship.mesh.rotation.z += .01;
+		// spaceship.mesh.rotation.y += .01;
+
     renderer.render(scene, camera);
     requestAnimationFrame(loop);
   }
@@ -341,11 +404,19 @@
     scene.add(rocks.mesh);
   }
 
+	const createSpaceship = () => {
+		spaceship = new Spaceship();
+		spaceship.mesh.position.z = -400;
+		spaceship.mesh.scale.set(.5, .5, .5);
+		scene.add(spaceship.mesh);
+	}
+
   const init = () => {
     createScene();
     createLights();
     createAsteroidBelt();
     createRocks();
+		createSpaceship();
 
 
     loop();
