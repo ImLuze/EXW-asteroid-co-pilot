@@ -5,6 +5,32 @@
   var asteroidBelt;
   var rocks;
 	var spaceship;
+	var bullets;
+
+	class Bullet {
+		constructor(options) {
+			const geom = new THREE.BoxGeometry(2, 5, 2, 1, 1, 1);
+
+			var material = new THREE.MeshPhongMaterial({
+				color:0x6FE7FF
+			});
+
+			this.mesh = new THREE.Mesh(geom, material);
+			this.mesh.position.x = spaceship.mesh.position.x;
+			this.mesh.position.y = spaceship.mesh.position.y;
+			this.mesh.position.z = spaceship.mesh.position.z;
+
+			const moveBullet = () => {
+				this.mesh.position.y += 10;
+				requestAnimationFrame(moveBullet);
+				if(isOffImaginaryScreen(this.mesh)) {
+					bullets.mesh.remove(this.mesh);
+				}
+			}
+
+			moveBullet()
+		}
+	}
 
 	class Spaceship {
 		constructor(options) {
@@ -104,6 +130,12 @@
       this.mesh = new THREE.Object3D();
     }
   }
+
+	class Bullets {
+		constructor(options) {
+			this.mesh = new THREE.Object3D();
+		}
+	}
 
   class Asteroid {
 		constructor(options) {
@@ -392,9 +424,6 @@
       }
     }
 
-		// spaceship.mesh.rotation.z += .01;
-		// spaceship.mesh.rotation.y += .01;
-
     renderer.render(scene, camera);
     requestAnimationFrame(loop);
   }
@@ -411,12 +440,26 @@
 		scene.add(spaceship.mesh);
 	}
 
+	const fire = () => {
+		bullet = new Bullet();
+		bullets.mesh.add(bullet.mesh);
+		console.log(bullets.mesh.children.length);
+	}
+
+	const createBullet = () => {
+		bullets = new Bullets();
+		scene.add(bullets.mesh)
+	}
+
   const init = () => {
     createScene();
     createLights();
     createAsteroidBelt();
     createRocks();
 		createSpaceship();
+		createBullet();
+
+		window.addEventListener('keydown', fire, false);
 
 
     loop();
