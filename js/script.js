@@ -474,23 +474,43 @@
 
 	const handleControls = e => {
 
+		const actionStrength = 1;
 		keyMap[e.keyCode] = e.type == 'keydown';
 
 		if(keyMap[81]) {
-			for(let i = 0; i < 1; i++) {
+			for(let i = 0; i < actionStrength; i++) {
 				turn(true);
 			}
 		}
 
 		if (keyMap[68]) {
-			for(let i = 0; i < 1; i++) {
+			for(let i = 0; i < actionStrength; i++) {
 				turn(false);
+			}
+		}
+
+		if (keyMap[90]) {
+			for(let i = 0; i < actionStrength; i++) {
+				forward();
 			}
 		}
 
 		if(keyMap[32]) {
 			fire();
 		}
+	}
+
+	const forward = () => {
+
+		var loop = setInterval( () => {
+			spaceship.mesh.position.y += Math.cos(spaceship.mesh.rotation.z);
+			spaceship.mesh.position.x += -Math.sin(spaceship.mesh.rotation.z);
+		}, 10);
+
+		setTimeout( () => {
+			clearInterval(loop);
+		}, 1000);
+
 	}
 
 	const turn = left => {
