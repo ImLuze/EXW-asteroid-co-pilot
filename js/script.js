@@ -6,10 +6,12 @@
   var rocks;
 	var spaceship;
 	var bullets;
+	const keyMap = [];
 
 	class Bullet {
 		constructor(options) {
 			const geom = new THREE.BoxGeometry(2, 5, 2, 1, 1, 1);
+			this.currentRotation = spaceship.mesh.rotation.z;
 
 			var material = new THREE.MeshPhongMaterial({
 				color:0x6FE7FF
@@ -21,7 +23,9 @@
 			this.mesh.position.z = spaceship.mesh.position.z;
 
 			const moveBullet = () => {
-				this.mesh.position.y += 10;
+				this.mesh.position.y += (Math.cos(this.currentRotation) * 10);
+				this.mesh.position.x += -(Math.sin(this.currentRotation) * 10);
+				this.mesh.rotation.z = this.currentRotation;
 				requestAnimationFrame(moveBullet);
 				if(isOffImaginaryScreen(this.mesh)) {
 					bullets.mesh.remove(this.mesh);
@@ -448,8 +452,9 @@
 		detectCollisionBetweenGroups(asteroidBelt, asteroidBelt, true);
 		detectCollisionBetweenGroups(asteroidBelt, rocks, false);
 		detectCollisionBetweenGroups(bullets, asteroidBelt, true);
+		detectCollisionBetweenGroups(bullets, rocks, false);
 
-		console.log(rocks.mesh.children.length);
+		// spaceship.mesh.rotation.z += .1;
 
     renderer.render(scene, camera);
     requestAnimationFrame(loop);
@@ -465,6 +470,38 @@
 		spaceship.mesh.position.z = -400;
 		spaceship.mesh.scale.set(.5, .5, .5);
 		scene.add(spaceship.mesh);
+	}
+
+	const handleControls = e => {
+
+		keyMap[e.keyCode] = e.type == 'keydown';
+
+		if(keyMap[81]) {
+			for(let i = 0; i < 1; i++) {
+				turn(true);
+			}
+		}
+
+		if (keyMap[68]) {
+			for(let i = 0; i < 1; i++) {
+				turn(false);
+			}
+		}
+
+		if(keyMap[32]) {
+			fire();
+		}
+	}
+
+	const turn = left => {
+
+		var loop = setInterval( () => {
+			spaceship.mesh.rotation.z += (left ? .01 : -.01);
+		}, 10);
+
+		setTimeout( () => {
+			clearInterval(loop);
+		}, 1000);
 	}
 
 	const fire = () => {
@@ -485,7 +522,8 @@
 		createSpaceship();
 		createBullet();
 
-		window.addEventListener('keydown', fire, false);
+		window.addEventListener('keydown', handleControls, false);
+		window.addEventListener('keyup', handleControls, false);
 
 
     loop();
