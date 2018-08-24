@@ -4,7 +4,20 @@
   height: 100%;
   overflow: hidden;
   background: radial-gradient(#18152b, #100e1c);
-  position: fixed;
   top: 0;
   left: 0;
+}
+
+
+h1, h2 {
+  font-family: Helvetica;
+  color: white;
+  position: absolute;
+  left: 1rem;
+  top: 1rem;
+  margin: 0;
+}
+
+h2 {
+  top: 3.5rem;
 }

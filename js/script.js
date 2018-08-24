@@ -20,6 +20,10 @@
   const keyMap = [];
   var recognition;
 
+  let optimizationKey = 0;
+  let score = 0;
+  const scoreContainer = document.querySelector('.score');
+
   class Bullet {
     constructor(options) {
       const geom = new THREE.BoxGeometry(2, 5, 2, 1, 1, 1);
@@ -385,15 +389,6 @@
     }
   };
 
-  const detectCollisionBetweenObjects = (object1, object2) => {
-    if (object1 && object2) {
-      object1Box = new THREE.Box3().setFromObject(object1);
-      object2Box = new THREE.Box3().setFromObject(object2);
-    }
-
-    return object1Box.intersectsBox(object2Box);
-  };
-
   const explode = object => {
     if (object) {
       for (let i = 0; i < object.children.length; i++) {
@@ -412,49 +407,68 @@
     }
   };
 
-  const detectCollisionBetweenGroups = (group1, group2, doExplode) => {
+  const detectCollisionBetweenObjects = (object1, object2) => {
+    if (object1 && object2) {
+      object1Box = new THREE.Box3().setFromObject(object1);
+      object2Box = new THREE.Box3().setFromObject(object2);
+    }
+
+    return object1Box.intersectsBox(object2Box);
+  };
+
+  const detectCollisionBetweenGroups = (group1, group2) => {
+    if (group1.mesh.uuid === group2.mesh.uuid) {
+      detectOwnGroupCollision(group1, group2);
+      return detectOwnGroupCollision(group1, group2);
+    } else {
+      return detectDifferentGroupCollision(group1, group2);
+    }
+  };
+
+  const detectOwnGroupCollision = (group1, group2) => {
     for (let i = 0; i < group1.mesh.children.length; i++) {
       for (let a = 0; a < group2.mesh.children.length; a++) {
-        if (group1.mesh.uuid === group2.mesh.uuid) {
-          if (i !== a) {
-            if (
-              detectCollisionBetweenObjects(
-                group1.mesh.children[i],
-                group2.mesh.children[a]
-              )
-            ) {
-              if (doExplode) {
-                if (rocks.mesh.children.length > 50) {
-                  group2.mesh.remove(group2.mesh.children[a]);
-                } else {
-                  explode(group2.mesh.children[a]);
-                }
-              } else {
-                group2.mesh.remove(group2.mesh.children[a]);
-              }
-            }
-          }
-        } else {
-          if (
-            detectCollisionBetweenObjects(
-              group1.mesh.children[i],
-              group2.mesh.children[a]
-            )
-          ) {
-            if (doExplode) {
-              if (rocks.mesh.children.length > 50) {
-                group2.mesh.remove(group2.mesh.children[a]);
-              } else {
-                explode(group2.mesh.children[a]);
-              }
-            } else {
-              group2.mesh.remove(group2.mesh.children[a]);
-            }
+        if (i !== a) {
+          if(detectCollisionBetweenObjects(group1.mesh.children[i], group2.mesh.children[a])) {
+            return group2.mesh.children[a];
           }
         }
       }
     }
-  };
+  }
+
+  const detectDifferentGroupCollision = (group1, group2) => {
+    for (let i = 0; i < group1.mesh.children.length; i++) {
+      for (let a = 0; a < group2.mesh.children.length; a++) {
+        if(detectCollisionBetweenObjects(group1.mesh.children[i], group2.mesh.children[a])) {
+          return group2.mesh.children[a];
+        }
+      }
+    }
+  }
+
+  const checkOptimization = () => {
+    if(optimizationKey === 0) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  const optimize = factor => {
+    // To many functions get called at 60fps, this functions slows those calls down.
+    // The higher the factor, the faster the game runs, but the lower the accuracy from the optimized functions.
+
+    optimizationKey++;
+    if(optimizationKey >= factor) {
+      optimizationKey = 0;
+    }
+  }
+
+  const scoreUp = amount => {
+    score += amount;
+    scoreContainer.innerText = score;
+  }
 
   const loop = () => {
     for (let i = 0; i < asteroidBelt.mesh.children.length; i++) {
@@ -473,10 +487,26 @@
       createNewAsteroid(asteroidBelt);
     }
 
-    detectCollisionBetweenGroups(asteroidBelt, asteroidBelt, true);
-    detectCollisionBetweenGroups(asteroidBelt, rocks, false);
-    detectCollisionBetweenGroups(bullets, asteroidBelt, true);
-    detectCollisionBetweenGroups(bullets, rocks, false);
+    optimize(5);
+
+    if (checkOptimization()) {
+
+      if (detectCollisionBetweenGroups(asteroidBelt, asteroidBelt)) {
+        explode(detectCollisionBetweenGroups(asteroidBelt, asteroidBelt));
+      };
+
+      if (detectCollisionBetweenGroups(bullets, asteroidBelt)) {
+        explode(detectCollisionBetweenGroups(bullets, asteroidBelt));
+        scoreUp(3);
+      };
+
+      if (detectCollisionBetweenGroups(bullets, rocks)) {
+        rocks.mesh.remove(detectCollisionBetweenGroups(bullets, rocks));
+        scoreUp(1);
+      }
+
+      rocks.mesh.remove(detectCollisionBetweenGroups(asteroidBelt, rocks));
+    }
 
     // spaceship.mesh.rotation.z += .1;
 
@@ -561,14 +591,8 @@
     recognition.lang = 'en-US';
     let command;
     recognition.onresult = function(event) {
-      console.log(
-        event.results[event.results.length - 1][0].transcript,
-        event.results.length
-      );
 
       command = event.results[event.results.length - 1][0].transcript;
-
-      console.log(command);
 
       if (command.includes('fire') || command.includes('shoot')) {
         fire();
@@ -590,8 +614,6 @@
         forward();
       }
 
-      console.log(command.length);
-
     };
     recognition.start();
   };
@@ -608,6 +630,7 @@
 
     window.addEventListener('keydown', handleControls, false);
     window.addEventListener('keyup', handleControls, false);
+
 
     loop();
   };
