@@ -37,9 +37,26 @@
   transition: opacity .3s ease-out;
 }
 
+.commands {
+  position: absolute;
+  color: white;
+  font-family: Helvetica;
+  top: 10rem;
+  left: 1rem;
+
+  animation: fadeOut 10s ease;
+  opacity: 0;
+}
+
 
 h1, h2 {
   font-family: Helvetica;
   color: white;
   margin: 0;
+}
+
+@keyframes fadeOut {
+  0% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { opacity: 0; }
 }

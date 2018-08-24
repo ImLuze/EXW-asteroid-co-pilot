@@ -506,7 +506,17 @@
 
   const loop = () => {
 
-    optimize(5);
+    optimize(10);
+
+    if (detectCollisionBetweenGroups(bullets, asteroidBelt)) {
+      explode(detectCollisionBetweenGroups(bullets, asteroidBelt));
+      scoreUp(3);
+    };
+
+    if (detectCollisionBetweenGroups(bullets, rocks)) {
+      rocks.mesh.remove(detectCollisionBetweenGroups(bullets, rocks));
+      scoreUp(1);
+    }
 
     if (checkOptimization()) {
 
@@ -537,16 +547,6 @@
         explode(detectCollisionBetweenGroups(asteroidBelt, asteroidBelt));
       };
 
-      if (detectCollisionBetweenGroups(bullets, asteroidBelt)) {
-        explode(detectCollisionBetweenGroups(bullets, asteroidBelt));
-        scoreUp(3);
-      };
-
-      if (detectCollisionBetweenGroups(bullets, rocks)) {
-        rocks.mesh.remove(detectCollisionBetweenGroups(bullets, rocks));
-        scoreUp(1);
-      }
-
       if (detectCollisionBetweenGroups(asteroidBelt, spaceship)) {
         spaceship.mesh.remove(detectCollisionBetweenGroups(asteroidBelt, spaceship));
         checkIfDead();
@@ -576,33 +576,6 @@
     spaceship.mesh.scale.set(0.5, 0.5, 0.5);
     scene.add(spaceship.mesh);
   };
-
-  // const handleControls = e => {
-  //   const actionStrength = 1;
-  //   keyMap[e.keyCode] = e.type == 'keydown';
-  //
-  //   if (keyMap[81]) {
-  //     for (let i = 0; i < actionStrength; i++) {
-  //       turn(true);
-  //     }
-  //   }
-  //
-  //   if (keyMap[68]) {
-  //     for (let i = 0; i < actionStrength; i++) {
-  //       turn(false);
-  //     }
-  //   }
-  //
-  //   if (keyMap[90]) {
-  //     for (let i = 0; i < actionStrength; i++) {
-  //       forward();
-  //     }
-  //   }
-  //
-  //   if (keyMap[32]) {
-  //     fire();
-  //   }
-  // };
 
   const forward = () => {
     var loop = setInterval(() => {
@@ -680,10 +653,6 @@
     createBullet();
 
     voiceCommands();
-
-    // window.addEventListener('keydown', handleControls, false);
-    // window.addEventListener('keyup', handleControls, false);
-
 
     loop();
   };
