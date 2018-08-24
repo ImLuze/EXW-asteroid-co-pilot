@@ -8,16 +8,38 @@
   left: 0;
 }
 
+.lost {
+  font-size: 6rem;
+}
+
+.alive {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+
+  opacity: 1;
+  transition: opacity .3s ease-out;
+}
+
+.death {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  opacity: 0;
+  transition: opacity .3s ease-out;
+}
+
 
 h1, h2 {
   font-family: Helvetica;
   color: white;
-  position: absolute;
-  left: 1rem;
-  top: 1rem;
   margin: 0;
-}
-
-h2 {
-  top: 3.5rem;
 }

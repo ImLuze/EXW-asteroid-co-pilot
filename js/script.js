@@ -22,7 +22,7 @@
 
   let optimizationKey = 0;
   let score = 0;
-  const scoreContainer = document.querySelector('.score');
+  const scoreContainer = document.querySelectorAll('.score');
 
   class Bullet {
     constructor(options) {
@@ -130,6 +130,24 @@
       rightWing.castShadow = true;
       rightWing.receiveShadow = true;
       this.mesh.add(rightWing);
+
+      var topWing = new THREE.Mesh(geomWing, material);
+      topWing.rotation.y += 1.7;
+      topWing.position.z += -20;
+      topWing.position.y += -10;
+
+      topWing.castShadow = true;
+      topWing.receiveShadow = true;
+      this.mesh.add(topWing);
+
+      var bottomWing = new THREE.Mesh(geomWing, material);
+      bottomWing.rotation.y += -1.7;
+      bottomWing.position.z += 20;
+      bottomWing.position.y += -10;
+
+      bottomWing.castShadow = true;
+      bottomWing.receiveShadow = true;
+      this.mesh.add(bottomWing);
     }
   }
 
@@ -467,29 +485,53 @@
 
   const scoreUp = amount => {
     score += amount;
-    scoreContainer.innerText = score;
+    for (let i = 0; i < scoreContainer.length; i++) {
+      scoreContainer[i].innerText = score;
+    }
+  }
+
+  const handleDeath = () => {
+    document.querySelector('.death').style.opacity = 1;
+    document.querySelector('.alive').style.opacity = 0;
+  }
+
+  const checkIfDead = () => {
+    if (spaceship.mesh.children.length <= 0) {
+      handleDeath();
+      return true;
+    } else {
+      return false;
+    }
   }
 
   const loop = () => {
-    for (let i = 0; i < asteroidBelt.mesh.children.length; i++) {
-      if (isOffImaginaryScreen(asteroidBelt.mesh.children[i])) {
-        asteroidBelt.mesh.remove(asteroidBelt.mesh.children[i]);
-      }
-    }
-
-    for (let i = 0; i < rocks.mesh.children.length; i++) {
-      if (isOffScreen(rocks.mesh.children[i])) {
-        rocks.mesh.remove(rocks.mesh.children[i]);
-      }
-    }
-
-    if (asteroidBelt.mesh.children.length < asteroidBelt.nAsteroids) {
-      createNewAsteroid(asteroidBelt);
-    }
 
     optimize(5);
 
     if (checkOptimization()) {
+
+      for (let i = 0; i < asteroidBelt.mesh.children.length; i++) {
+        if (isOffImaginaryScreen(asteroidBelt.mesh.children[i])) {
+          asteroidBelt.mesh.remove(asteroidBelt.mesh.children[i]);
+        }
+      }
+
+      for (let i = 0; i < rocks.mesh.children.length; i++) {
+        if (isOffScreen(rocks.mesh.children[i])) {
+          rocks.mesh.remove(rocks.mesh.children[i]);
+        }
+      }
+
+      if (isOffScreen(spaceship.mesh)) {
+        for(let i = 0; i < spaceship.mesh.children.length; i++) {
+          spaceship.mesh.remove(spaceship.mesh.children[i]);
+          checkIfDead();
+        }
+      }
+
+      if (asteroidBelt.mesh.children.length < asteroidBelt.nAsteroids) {
+        createNewAsteroid(asteroidBelt);
+      }
 
       if (detectCollisionBetweenGroups(asteroidBelt, asteroidBelt)) {
         explode(detectCollisionBetweenGroups(asteroidBelt, asteroidBelt));
@@ -505,10 +547,19 @@
         scoreUp(1);
       }
 
-      rocks.mesh.remove(detectCollisionBetweenGroups(asteroidBelt, rocks));
-    }
+      if (detectCollisionBetweenGroups(asteroidBelt, spaceship)) {
+        spaceship.mesh.remove(detectCollisionBetweenGroups(asteroidBelt, spaceship));
+        checkIfDead();
+      }
 
-    // spaceship.mesh.rotation.z += .1;
+      if (detectCollisionBetweenGroups(rocks, spaceship)) {
+        spaceship.mesh.remove(detectCollisionBetweenGroups(rocks, spaceship));
+        checkIfDead();
+      }
+
+      rocks.mesh.remove(detectCollisionBetweenGroups(asteroidBelt, rocks));
+
+    }
 
     renderer.render(scene, camera);
     requestAnimationFrame(loop);
@@ -526,38 +577,38 @@
     scene.add(spaceship.mesh);
   };
 
-  const handleControls = e => {
-    const actionStrength = 1;
-    keyMap[e.keyCode] = e.type == 'keydown';
-
-    if (keyMap[81]) {
-      for (let i = 0; i < actionStrength; i++) {
-        turn(true);
-      }
-    }
-
-    if (keyMap[68]) {
-      for (let i = 0; i < actionStrength; i++) {
-        turn(false);
-      }
-    }
-
-    if (keyMap[90]) {
-      for (let i = 0; i < actionStrength; i++) {
-        forward();
-      }
-    }
-
-    if (keyMap[32]) {
-      fire();
-    }
-  };
+  // const handleControls = e => {
+  //   const actionStrength = 1;
+  //   keyMap[e.keyCode] = e.type == 'keydown';
+  //
+  //   if (keyMap[81]) {
+  //     for (let i = 0; i < actionStrength; i++) {
+  //       turn(true);
+  //     }
+  //   }
+  //
+  //   if (keyMap[68]) {
+  //     for (let i = 0; i < actionStrength; i++) {
+  //       turn(false);
+  //     }
+  //   }
+  //
+  //   if (keyMap[90]) {
+  //     for (let i = 0; i < actionStrength; i++) {
+  //       forward();
+  //     }
+  //   }
+  //
+  //   if (keyMap[32]) {
+  //     fire();
+  //   }
+  // };
 
   const forward = () => {
     var loop = setInterval(() => {
       spaceship.mesh.position.y += Math.cos(spaceship.mesh.rotation.z);
       spaceship.mesh.position.x += -Math.sin(spaceship.mesh.rotation.z);
-    }, 10);
+    }, 30);
 
     setTimeout(() => {
       clearInterval(loop);
@@ -567,7 +618,7 @@
   const turn = left => {
     var loop = setInterval(() => {
       spaceship.mesh.rotation.z += left ? 0.01 : -0.01;
-    }, 10);
+    }, 30);
 
     setTimeout(() => {
       clearInterval(loop);
@@ -575,8 +626,10 @@
   };
 
   const fire = () => {
-    const bullet = new Bullet();
-    bullets.mesh.add(bullet.mesh);
+    if (!checkIfDead()) {
+      const bullet = new Bullet();
+      bullets.mesh.add(bullet.mesh);
+    }
   };
 
   const createBullet = () => {
@@ -628,8 +681,8 @@
 
     voiceCommands();
 
-    window.addEventListener('keydown', handleControls, false);
-    window.addEventListener('keyup', handleControls, false);
+    // window.addEventListener('keydown', handleControls, false);
+    // window.addEventListener('keyup', handleControls, false);
 
 
     loop();
