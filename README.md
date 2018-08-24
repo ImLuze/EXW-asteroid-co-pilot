@@ -6,6 +6,6 @@ The ship's only weapon against the incoming rain of flying space rocks is a sing
 Lead your ship to safety by shouting commands at your captain, the more frustrated and loudly you shout, the more heavily your captain will react.
 
 Shouting:
-TURN - Will turn the ship.
-FIRE - Will fire the ship's laster gun.
-GO - Will move the ship forward.
+TURN, LEFT, RIGHT - Will turn the ship.
+FIRE, SHOOT - Will fire the ship's laster gun.
+GO, FORWARD, MOVE - Will move the ship forward.
