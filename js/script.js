@@ -1,5 +1,5 @@
 (() => {
-  var scene,
+  let scene,
     fieldOfView,
     aspectRatio,
     nearPlane,
@@ -12,13 +12,13 @@
     object1Box,
     object2Box,
     container;
-  var hemisphereLight, shadowLight;
-  var asteroidBelt;
-  var rocks;
-  var spaceship;
-  var bullets;
+  let hemisphereLight, shadowLight;
+  let asteroidBelt;
+  let rocks;
+  let spaceship;
+  let bullets;
   const keyMap = [];
-  var recognition;
+  let recognition;
 
   let optimizationKey = 0;
   let score = 0;
@@ -29,7 +29,7 @@
       const geom = new THREE.BoxGeometry(2, 5, 2, 1, 1, 1);
       this.currentRotation = spaceship.mesh.rotation.z;
 
-      var material = new THREE.MeshPhongMaterial({
+      const material = new THREE.MeshPhongMaterial({
         color: 0x6fe7ff
       });
 
@@ -79,11 +79,11 @@
       geomBody.vertices[15].x += 3;
       geomBody.vertices[15].z += -3;
 
-      var material = new THREE.MeshPhongMaterial({
+      const material = new THREE.MeshPhongMaterial({
         color: 0xd52626
       });
 
-      var body = new THREE.Mesh(geomBody, material);
+      const body = new THREE.Mesh(geomBody, material);
 
       body.castShadow = true;
       body.receiveShadow = true;
@@ -114,7 +114,7 @@
       geomWing.vertices[7].y += 5;
       geomWing.vertices[7].x += -3;
 
-      var leftWing = new THREE.Mesh(geomWing, material);
+      const leftWing = new THREE.Mesh(geomWing, material);
       leftWing.position.x += 20;
       leftWing.position.y += -10;
 
@@ -122,7 +122,7 @@
       leftWing.receiveShadow = true;
       this.mesh.add(leftWing);
 
-      var rightWing = new THREE.Mesh(geomWing, material);
+      const rightWing = new THREE.Mesh(geomWing, material);
       rightWing.rotation.y += 3.2;
       rightWing.position.x += -20;
       rightWing.position.y += -10;
@@ -131,7 +131,7 @@
       rightWing.receiveShadow = true;
       this.mesh.add(rightWing);
 
-      var topWing = new THREE.Mesh(geomWing, material);
+      const topWing = new THREE.Mesh(geomWing, material);
       topWing.rotation.y += 1.7;
       topWing.position.z += -20;
       topWing.position.y += -10;
@@ -140,7 +140,7 @@
       topWing.receiveShadow = true;
       this.mesh.add(topWing);
 
-      var bottomWing = new THREE.Mesh(geomWing, material);
+      const bottomWing = new THREE.Mesh(geomWing, material);
       bottomWing.rotation.y += -1.7;
       bottomWing.position.z += 20;
       bottomWing.position.y += -10;
@@ -186,7 +186,7 @@
 
       const geom = new THREE.IcosahedronGeometry(20);
 
-      var mat = new THREE.MeshPhongMaterial({
+      const mat = new THREE.MeshPhongMaterial({
         color: 0x322c23
       });
 
@@ -228,7 +228,7 @@
     constructor(options) {
       const geom = new THREE.IcosahedronGeometry(10);
 
-      var mat = new THREE.MeshPhongMaterial({
+      const mat = new THREE.MeshPhongMaterial({
         color: 0x322c23
       });
 
@@ -363,7 +363,7 @@
   const isOffScreen = object => {
     camera.updateMatrix();
     camera.updateMatrixWorld();
-    var frustum = new THREE.Frustum();
+    const frustum = new THREE.Frustum();
     frustum.setFromMatrix(
       new THREE.Matrix4().multiplyMatrices(
         camera.projectionMatrix,
@@ -392,7 +392,7 @@
 
     imaginaryCamera.updateMatrix();
     imaginaryCamera.updateMatrixWorld();
-    var frustum = new THREE.Frustum();
+    const frustum = new THREE.Frustum();
     frustum.setFromMatrix(
       new THREE.Matrix4().multiplyMatrices(
         imaginaryCamera.projectionMatrix,
@@ -578,7 +578,7 @@
   };
 
   const forward = () => {
-    var loop = setInterval(() => {
+    const loop = setInterval(() => {
       spaceship.mesh.position.y += Math.cos(spaceship.mesh.rotation.z);
       spaceship.mesh.position.x += -Math.sin(spaceship.mesh.rotation.z);
     }, 30);
@@ -589,7 +589,7 @@
   };
 
   const turn = left => {
-    var loop = setInterval(() => {
+    const loop = setInterval(() => {
       spaceship.mesh.rotation.z += left ? 0.01 : -0.01;
     }, 30);
 
